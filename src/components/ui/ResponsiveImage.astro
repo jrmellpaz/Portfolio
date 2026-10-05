@@ -1,0 +1,81 @@
+---
+import { Picture } from "astro:assets";
+
+// `src` must be an imported ImageMetadata (e.g. via import.meta.glob), not a string
+// path — that's what lets <Picture> emit optimized, responsive avif/webp output.
+interface Props {
+	src: ImageMetadata;
+	// Optional dark-theme variant. When set, a second <Picture> is rendered and the
+	// `.theme-img-*` styles below show the right one for the active theme.
+	darkSrc?: ImageMetadata;
+	alt: string;
+	width?: number;
+	height?: number;
+	layout?: "constrained" | "fixed" | "full-width" | "none";
+	formats?: ("avif" | "webp" | "png" | "jpeg" | "gif")[];
+	sizes?: string;
+	loading?: "lazy" | "eager";
+	decoding?: "async" | "sync" | "auto";
+	pictureAttributes?: astroHTML.JSX.HTMLAttributes;
+	class?: string;
+}
+
+const {
+	src,
+	darkSrc,
+	alt,
+	width,
+	height,
+	layout = "constrained",
+	formats = ["avif", "webp"],
+	sizes,
+	loading = "lazy",
+	decoding = "async",
+	pictureAttributes,
+	class: className,
+} = Astro.props;
+
+// Shared <Picture> props for both the light and dark variants.
+const common = { alt, width, height, layout, formats, sizes, loading, decoding, class: className };
+
+// Merge a theme-toggle class onto the <picture> element without dropping caller-provided ones.
+const withThemeClass = (themeClass: string) => ({
+	...pictureAttributes,
+	class: [themeClass, pictureAttributes?.class].filter(Boolean).join(" "),
+});
+---
+
+<!-- Reveal the right variant per theme, mirroring light-dark() for the light/dark/system
+     toggle. Global because the classes sit on the child <Picture>'s <picture> element, which
+     doesn't carry this component's scope hash. -->
+<style>
+	:global(.theme-img-dark) {
+		display: none;
+	}
+	:global(:root[data-theme="dark"] .theme-img-light) {
+		display: none;
+	}
+	:global(:root[data-theme="dark"] .theme-img-dark) {
+		display: revert;
+	}
+	@media (prefers-color-scheme: dark) {
+		:global(:root[data-theme="system"] .theme-img-light) {
+			display: none;
+		}
+		:global(:root[data-theme="system"] .theme-img-dark) {
+			display: revert;
+		}
+	}
+</style>
+
+{
+	darkSrc ? (
+		<>
+			<Picture src={src} {...common} pictureAttributes={withThemeClass("theme-img-light")} />
+			<Picture src={darkSrc} {...common} pictureAttributes={withThemeClass("theme-img-dark")} />
+		</>
+	) : (
+		<Picture src={src} {...common} pictureAttributes={pictureAttributes} />
+	)
+}
+

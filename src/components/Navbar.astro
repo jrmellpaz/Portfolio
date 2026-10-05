@@ -1,0 +1,178 @@
+---
+import { links } from "@lib/data/links";
+import { profile } from "@lib/data/profile";
+import ThemeToggle from "./ThemeToggle.astro";
+import MobileNav from "./MobileNav.tsx";
+import logoLight from "@assets/logo/logo-light.svg";
+import logoDark from "@assets/logo/logo-dark.svg";
+---
+
+<header
+	id="site-header"
+	class="bg-background fixed inset-s-0 inset-e-0 inset-bs-0 isolate z-1 border-b border-transparent pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]"
+>
+	<nav
+		class="mx-auto flex items-center-safe justify-between px-6 py-4 block-full max-inline-6xl md:px-10"
+		aria-label="Primary"
+	>
+		<!-- Logo -->
+		<button
+			id="logo-btn"
+			aria-label={`${profile.name} — back to top`}
+			class="flex items-center-safe gap-2 px-2 text-xl font-bold tracking-tight transition-opacity select-none hover:opacity-60 focus-visible:rounded-full focus-visible:opacity-60 focus-visible:outline-offset-6"
+		>
+			<img
+				src={logoLight.src}
+				alt=""
+				width={logoLight.width}
+				height={logoLight.height}
+				class="theme-img-light size-7 object-contain"
+				decoding="async"
+			/>
+			<img
+				src={logoDark.src}
+				alt=""
+				width={logoDark.width}
+				height={logoDark.height}
+				class="theme-img-dark size-7 object-contain"
+				decoding="async"
+			/>
+			{profile.name}
+		</button>
+
+		<!-- Links -->
+		<div class="flex items-center-safe gap-4 md:gap-6">
+			<ul id="nav-links" class="hidden items-center-safe gap-1 md:flex">
+				{
+					links.map((link) => (
+						<li>
+							<button
+								data-id={link.id}
+								class="nav-link text-muted-foreground rounded-full px-3.5 py-1.5 text-sm transition-colors"
+							>
+								{link.label}
+							</button>
+						</li>
+					))
+				}
+			</ul>
+
+			<!-- Theme toggle -->
+			<div class="hidden md:block">
+				<ThemeToggle />
+			</div>
+
+			<!-- Mobile bottom sheet navigation -->
+			<MobileNav links={links} client:media="(max-width: 48rem)">
+				<ThemeToggle />
+			</MobileNav>
+		</div>
+	</nav>
+</header>
+
+<script>
+	import { links } from "@lib/data/links";
+	import { activeSectionId } from "@lib/scroll-spy";
+	import { scrollToSection } from "@lib/scroll-to";
+
+	const ACTIVE_BTN_CLASSES = ["bg-secondary", "text-foreground"] as const;
+	const INACTIVE_BTN_CLASSES = [
+		"text-muted-foreground",
+		"hover:text-foreground",
+		"focus-visible:text-foreground",
+	] as const;
+	const SCROLLED_CLASSES = ["border-border", "shadow-sm"] as const;
+	const UNSCROLLED_CLASSES = ["border-transparent"] as const;
+
+	const header = document.getElementById("site-header")!;
+	const navButtons = document.querySelectorAll<HTMLButtonElement>(".nav-link");
+	const logoBtn = document.getElementById("logo-btn")!;
+
+	function setActive(id: string) {
+		navButtons.forEach((btn) => {
+			const isActive = btn.dataset.id === id;
+
+			if (isActive) {
+				btn.classList.add(...ACTIVE_BTN_CLASSES);
+				btn.classList.remove(...INACTIVE_BTN_CLASSES);
+				btn.setAttribute("aria-current", "true");
+			} else {
+				btn.classList.remove(...ACTIVE_BTN_CLASSES);
+				btn.classList.add(...INACTIVE_BTN_CLASSES);
+				btn.removeAttribute("aria-current");
+			}
+		});
+	}
+
+	function onScroll() {
+		const scrolled = window.scrollY > 30;
+
+		if (scrolled) {
+			header.classList.add(...SCROLLED_CLASSES);
+			header.classList.remove(...UNSCROLLED_CLASSES);
+		} else {
+			header.classList.remove(...SCROLLED_CLASSES);
+			header.classList.add(...UNSCROLLED_CLASSES);
+		}
+	}
+
+	function updateActive() {
+		setActive(activeSectionId(links));
+	}
+
+	// Scroll fires far more often than we need to repaint, and updateActive() reads layout
+	// (getBoundingClientRect per section). Coalesce bursts into a single read on the next frame.
+	let framePending = false;
+
+	function onScrollFrame() {
+		if (framePending) return;
+		framePending = true;
+		requestAnimationFrame(() => {
+			framePending = false;
+			onScroll();
+			updateActive();
+		});
+	}
+
+	function init() {
+		onScroll();
+		updateActive();
+
+		window.addEventListener("scroll", onScrollFrame, { passive: true });
+		window.addEventListener("resize", updateActive);
+
+		navButtons.forEach((btn) => {
+			btn.addEventListener("click", () => scrollToSection(btn.dataset.id!));
+		});
+
+		logoBtn.addEventListener("click", () => {
+			window.scrollTo({ top: 0, behavior: "smooth" });
+		});
+	}
+
+	init();
+</script>
+
+<style>
+	.theme-img-dark {
+		display: none;
+	}
+
+	:root[data-theme="dark"] .theme-img-light {
+		display: none;
+	}
+
+	:root[data-theme="dark"] .theme-img-dark {
+		display: revert;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		:root[data-theme="system"] .theme-img-light {
+			display: none;
+		}
+
+		:root[data-theme="system"] .theme-img-dark {
+			display: revert;
+		}
+	}
+</style>

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__claude_ai_Figma__whoami",
+      "PowerShell(pnpm build *)",
+      "Bash(npx eslint *)",
+      "Bash(npx prettier *)",
+      "Bash(grep -noE '[^{}]{0,40}\\(padding-right|padding-inline-end|scrollbar-gutter|body\\\\\\)|overflow: hidden|overflow:hidden\\)[^{}]{0,30}' node_modules/@silk-hq/components/dist/main.css)",
+      "Bash(node *)",
+      "Bash(pnpm build *)",
+      "mcp__mdn__get-compat"
+    ]
+  }
+}

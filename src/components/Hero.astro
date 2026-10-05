@@ -1,0 +1,100 @@
+---
+import { ArrowDownRight01Icon } from "@hugeicons/core-free-icons";
+import { profile } from "@lib/data/profile";
+import Icon from "./ui/Icon.astro";
+import Button from "./ui/Button.astro";
+---
+
+<section
+	class="border-border border-t pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]"
+	aria-labelledby="hero-heading"
+>
+	<div class="mx-auto px-6 pbs-20 pbe-16 max-inline-6xl md:px-10 md:pbs-32 md:pbe-28">
+		<div class="text-muted-foreground flex items-center-safe gap-2 text-sm">
+			<span class="inline-block size-1.5 rounded-full bg-[#3f7d54]"></span>
+			{profile.status}
+		</div>
+
+		<h1
+			id="hero-heading"
+			class="mbs-8 text-4xl leading-tight font-bold tracking-tighter md:text-6xl"
+		>
+			{profile.name}
+			<span class="text-muted-foreground block text-2xl font-semibold tracking-tight md:text-3xl"
+				>{profile.role}.</span
+			>
+		</h1>
+
+		<p
+			class="text-foreground/80 mbs-8 text-base leading-relaxed text-pretty max-inline-xl md:text-lg"
+		>
+			{profile.intro}
+		</p>
+
+		<div class="mbs-10 flex flex-wrap items-center gap-3">
+			<Button data-scroll-to="works">
+				View my work
+				<Icon
+					icon={ArrowDownRight01Icon}
+					class="size-4 transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5 group-focus-visible:translate-x-0.5 group-focus-visible:translate-y-0.5"
+					strokeWidth={2}
+				/>
+			</Button>
+			<Button variant="outline" data-scroll-to="contact">Get in touch</Button>
+			{
+				profile.location && (
+					<span class="text-muted-foreground ms-auto hidden text-sm sm:block">
+						{profile.location}
+					</span>
+				)
+			}
+		</div>
+	</div>
+</section>
+
+<script>
+	import { scrollToSection } from "@lib/scroll-to";
+
+	document.querySelectorAll<HTMLButtonElement>("[data-scroll-to]").forEach((btn) => {
+		btn.addEventListener("click", () => scrollToSection(btn.dataset.scrollTo!));
+	});
+</script>
+
+<style>
+	section {
+		position: relative;
+		isolation: isolate;
+		--lattice: rgba(28, 27, 25, 0.1);
+	}
+
+	/* system mode: follow the OS unless the user explicitly picked light */
+	@media (prefers-color-scheme: dark) {
+		:root:not([data-theme="light"]) section {
+			--lattice: rgba(255, 255, 255, 0.1);
+		}
+	}
+
+	/* explicit dark, regardless of the OS */
+	:root[data-theme="dark"] section {
+		--lattice: rgba(255, 255, 255, 0.1);
+	}
+
+	section::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+
+		background-image:
+			repeating-linear-gradient(45deg, var(--lattice) 0 1px, transparent 1px 24px),
+			repeating-linear-gradient(-45deg, var(--lattice) 0 1px, transparent 1px 24px);
+
+		-webkit-mask-image:
+			radial-gradient(ellipse 45% 60% at 100% 0%, #000, transparent),
+			radial-gradient(ellipse 45% 60% at 100% 100%, #000, transparent);
+		mask-image:
+			radial-gradient(ellipse 45% 60% at 100% 0%, #000, transparent),
+			radial-gradient(ellipse 45% 60% at 100% 100%, #000, transparent);
+	}
+</style>

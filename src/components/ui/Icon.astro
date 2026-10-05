@@ -1,0 +1,36 @@
+---
+import { iconToSvg, type IconNode } from "@lib/icon";
+
+type Props = {
+	icon: readonly IconNode[];
+	size?: number;
+	color?: string;
+	strokeWidth?: number;
+	class?: string;
+};
+
+const {
+	icon,
+	size = 24,
+	color = "currentColor",
+	strokeWidth = 1.5,
+	class: className,
+}: Props = Astro.props;
+
+const innerSVG = iconToSvg(icon);
+---
+
+<svg
+	width={size}
+	height={size}
+	viewBox="0 0 24 24"
+	fill="none"
+	stroke={color}
+	stroke-width={strokeWidth}
+	stroke-linecap="round"
+	stroke-linejoin="round"
+	class={className}
+	aria-hidden="true"
+	focusable="false"
+	set:html={innerSVG}
+/>

@@ -1,0 +1,60 @@
+---
+import { ArrowUpRight03Icon } from "@hugeicons/core-free-icons";
+import ButtonLink from "./ui/ButtonLink.astro";
+import Icon from "./ui/Icon.astro";
+import Section from "./ui/Section.astro";
+import { social } from "@lib/data/social";
+
+const email = social.find((item) => item.name === "Email")?.link;
+
+const hrefFor = (item: (typeof social)[number]) =>
+	item.name === "Email" ? `mailto:${item.link}` : item.link;
+
+// Everything except the mailto email opens in a new tab (external profiles + the résumé PDF).
+const opensInNewTab = (item: (typeof social)[number]) => item.name !== "Email";
+
+const labelFor = (item: (typeof social)[number]) =>
+	item.name === "Résumé" ? "View PDF" : item.link;
+---
+
+<Section id="contact" title="Get in touch">
+	<div class="grid gap-10 md:grid-cols-[1.3fr_1fr]">
+		<div>
+			<p
+				class="text-xl leading-snug font-medium tracking-tight text-balance max-inline-md md:text-2xl"
+			>
+				Have a role, a project, or just want to say hi? <span class="text-muted-foreground"
+					>My inbox is open.</span
+				>
+			</p>
+			{
+				email && (
+					<ButtonLink class="mbs-8" href={`mailto:${email}`}>
+						Say hello
+						<Icon icon={ArrowUpRight03Icon} strokeWidth={2} class="size-4" />
+					</ButtonLink>
+				)
+			}
+		</div>
+		<ul class="divide-border flex flex-col gap-3 divide-y">
+			{
+				social.map((item) => (
+					<li>
+						<a
+							href={hrefFor(item)}
+							class="group focus-visible:squircle flex items-center-safe justify-between gap-4 py-3.5 focus-visible:rounded-full focus-visible:outline-offset-4"
+							{...(opensInNewTab(item) ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+						>
+							<span class="text-muted-foreground text-sm">{item.name}</span>
+							<span class="transform-opacity flex items-center-safe gap-1.5 text-right text-sm group-hover:opacity-60 group-focus-visible:opacity-60">
+								{labelFor(item)}
+								{opensInNewTab(item) && <span class="sr-only"> (opens in new tab)</span>}
+								<Icon icon={ArrowUpRight03Icon} strokeWidth={2} class="size-3.5 shrink-0" />
+							</span>
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</div>
+</Section>

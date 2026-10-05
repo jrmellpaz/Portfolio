@@ -1,0 +1,194 @@
+@import "@silk-hq/components/unlayered-styles.css" layer(silk);
+@import "tailwindcss";
+
+/* Reach a dialog/popover's ::backdrop pseudo as a Tailwind variant, so the lightbox
+   backdrop can be styled with utilities (e.g. `backdrop:bg-black/70`) instead of raw CSS. */
+@custom-variant backdrop (&::backdrop);
+
+:root[data-theme="light"] {
+	color-scheme: light;
+}
+:root[data-theme="dark"] {
+	color-scheme: dark;
+}
+:root[data-theme="system"] {
+	color-scheme: light dark;
+}
+
+:root {
+	--header-height: 4.25rem;
+
+	--background: light-dark(#f3f2ed, #16150f);
+	--foreground: light-dark(#1c1b18, #f0efe8);
+	--card: light-dark(#f7f6f1, #1d1c16);
+	--card-foreground: light-dark(#1c1b18, #f0efe8);
+	--popover: light-dark(#f7f6f1, #1d1c16);
+	--popover-foreground: light-dark(#1c1b18, #f0efe8);
+	--primary: light-dark(#1c1b18, #f0efe8);
+	--primary-foreground: light-dark(#f7f6f1, #16150f);
+	--secondary: light-dark(#e7e5dd, #28261e);
+	--secondary-foreground: light-dark(#1c1b18, #f0efe8);
+	--muted: light-dark(#e7e5dd, #28261e);
+	--muted-foreground: light-dark(#646158, #9b988c);
+	--accent: light-dark(#e7e5dd, #28261e);
+	--accent-foreground: light-dark(#1c1b18, #f0efe8);
+	--destructive: light-dark(#b4452f, #d4634b);
+	--destructive-foreground: light-dark(#ffffff, #ffffff);
+	--border: light-dark(rgba(28, 27, 24, 0.14), rgba(240, 239, 232, 0.12));
+	--input: light-dark(transparent, #28261e);
+	--input-background: light-dark(#ecebe4, #28261e);
+	--switch-background: light-dark(#cbc8bd, #cbc8bd);
+	--ring: light-dark(rgba(28, 27, 24, 0.7), rgba(240, 239, 232, 0.7));
+}
+
+@theme inline {
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-input-background: var(--input-background);
+	--color-switch-background: var(--switch-background);
+	--color-ring: var(--ring);
+
+	--font-mono: var(--font-jetbrains-mono), monospace;
+}
+
+@utility squircle {
+	corner-shape: squircle;
+}
+
+@layer base {
+	* {
+		box-sizing: border-box;
+		-webkit-tap-highlight-color: transparent; /* Removes the grey highlight on clickable elements on iOS */
+		-webkit-text-size-adjust: 100%; /* Prevent adjustments of font size after orientation changes in iOS */
+		font-style: normal;
+	}
+
+	html,
+	body {
+		margin: 0;
+		font-family: var(--font-inter), sans-serif;
+		font-style: normal;
+		font-optical-sizing: auto;
+		font-size: 16px;
+		min-height: 100%;
+		interpolate-size: allow-keywords;
+		overflow-x: clip;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		background-color: var(--background);
+		color: var(--foreground);
+		scroll-behavior: smooth;
+		scrollbar-color: rgb(from var(--muted-foreground) r g b / 0.75) transparent;
+	}
+
+	body {
+		padding-block-start: var(--header-height);
+	}
+
+	::selection {
+		background: var(--primary);
+		color: var(--primary-foreground);
+	}
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		letter-spacing: -0.025rem;
+		font-weight: var(--font-weight-medium);
+		line-height: 1.5;
+	}
+
+	h1 {
+		font-size: var(--text-2xl);
+	}
+
+	h2 {
+		font-size: var(--text-xl);
+	}
+
+	h3 {
+		font-size: var(--text-lg);
+	}
+
+	h4 {
+		font-size: var(--text-base);
+	}
+
+	label {
+		font-size: var(--text-base);
+		font-weight: var(--font-weight-medium);
+		line-height: 1.5;
+	}
+
+	input {
+		font-size: var(--text-base);
+		font-weight: var(--font-weight-normal);
+		line-height: 1.5;
+	}
+
+	button {
+		font-size: var(--text-base);
+		line-height: 1.5;
+		border: none;
+		background-color: transparent;
+		cursor: pointer;
+		transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+		will-change: transform;
+
+		&:active {
+			transform: scale(0.96);
+		}
+
+		&:disabled {
+			cursor: not-allowed;
+		}
+	}
+
+	:focus-visible {
+		outline: 2px solid var(--ring);
+		outline-offset: 2px;
+	}
+
+	::view-transition-old(root),
+	::view-transition-new(root) {
+		animation-duration: 0.4s;
+		mix-blend-mode: normal;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		::view-transition-old(root),
+		::view-transition-new(root) {
+			animation: none;
+		}
+	}
+}
+
+@layer components {
+	.sheet-radius {
+		border-radius: var(--radius-4xl);
+
+		@supports (corner-shape: squircle) {
+			corner-shape: squircle;
+			border-radius: 72px;
+		}
+	}
+}

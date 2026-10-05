@@ -1,0 +1,254 @@
+---
+import {
+	LinkSquare02Icon,
+	GithubIcon,
+	File01Icon,
+	ArrowLeft01Icon,
+	ArrowRight01Icon,
+	Video01Icon,
+	Book02Icon,
+} from "@hugeicons/core-free-icons";
+import Icon from "./ui/Icon.astro";
+import Badge from "./ui/Badge.astro";
+import ButtonLink from "./ui/ButtonLink.astro";
+import ResponsiveImage from "./ui/ResponsiveImage.astro";
+import Lightbox from "./ui/Lightbox.astro";
+import { render, type CollectionEntry } from "astro:content";
+
+type Props = {
+	entry: CollectionEntry<"works">;
+};
+
+const { entry } = Astro.props;
+const work = entry.data;
+// The description prose is the entry's Markdown body, rendered below via <Content />.
+const { Content } = await render(entry);
+// cover/coverDark/gallery images are resolved to ImageMetadata by the collection's image() schema.
+const { cover, coverDark, gallery } = work;
+const hasCta = Boolean(work.links.live || work.links.source);
+---
+
+<article class="mx-auto space-y-10 p-6 max-inline-3xl md:p-10">
+	<header class="space-y-2">
+		<p class="text-muted-foreground text-sm">{work.date.long}</p>
+		<h3 class="text-2xl font-extrabold text-balance md:text-3xl">{work.title}</h3>
+		<p class="text-muted-foreground text-base font-semibold text-pretty md:text-lg">
+			{work.tagline}
+		</p>
+	</header>
+
+	{/* Primary call-to-action: visit the live project & view the source */}
+	{
+		hasCta && (
+			<div class="flex flex-wrap gap-3">
+				{work.links.live && (
+					<ButtonLink href={work.links.live} target="_blank" rel="noreferrer">
+						<Icon icon={LinkSquare02Icon} class="size-4" />
+						Visit site
+						<span class="sr-only"> (opens in new tab)</span>
+					</ButtonLink>
+				)}
+				{work.links.source && (
+					<ButtonLink href={work.links.source} variant="outline" target="_blank" rel="noreferrer">
+						<Icon icon={GithubIcon} class="size-4" />
+						Source code
+						<span class="sr-only"> (opens in new tab)</span>
+					</ButtonLink>
+				)}
+			</div>
+		)
+	}
+
+	{/* Cover image */}
+	{
+		cover && (
+			<figure class="border-border bg-secondary squircle overflow-hidden rounded-[56px] border">
+				<ResponsiveImage
+					src={cover}
+					darkSrc={coverDark}
+					alt={`${work.title} cover`}
+					layout="constrained"
+					class="object-cover inline-full"
+				/>
+			</figure>
+		)
+	}
+
+	{/* Story */}
+	<div class="text-foreground/85 space-y-4 text-sm leading-relaxed text-pretty md:text-base">
+		<Content />
+	</div>
+
+	{/* Highlights */}
+	{
+		work.highlights && work.highlights.length > 0 && (
+			<section>
+				<h4 class="text-muted-foreground text-sm font-semibold">Highlights</h4>
+				<ul class="mbs-3 space-y-2">
+					{work.highlights.map((highlight) => (
+						<li class="text-foreground/85 flex gap-3 text-sm md:text-base">
+							<span class="bg-foreground/40 mbs-2 inline-block size-1.5 shrink-0 rounded-full" />
+							{highlight}
+						</li>
+					))}
+				</ul>
+			</section>
+		)
+	}
+
+	{/* Tech stack */}
+	<section>
+		<h4 class="text-muted-foreground text-sm font-semibold">Built with</h4>
+		<ul class="mbs-3 flex flex-wrap gap-2">
+			{
+				work.stack.map((tech) => (
+					<li>
+						<Badge>{tech}</Badge>
+					</li>
+				))
+			}
+		</ul>
+	</section>
+
+	{
+		/* Additional gallery: snap-scrolled track navigated by prev/next controls (wired in Works.astro). */
+	}
+	{
+		gallery.length > 0 && (
+			<section data-gallery>
+				<h4 class="text-muted-foreground text-sm font-semibold">Gallery</h4>
+				<ul
+					data-gallery-track
+					role="group"
+					aria-label="Gallery images"
+					class="-ms-6 -me-6 mbs-3 flex snap-x snap-mandatory scroll-ps-6 scrollbar-none gap-4 overflow-x-auto ps-6 pe-6 pbe-2 contain-[inline-size] md:-ms-10 md:-me-10 md:scroll-ps-10 md:ps-10 md:pe-10 [&::-webkit-scrollbar]:hidden"
+				>
+					{gallery.map((image, i) => (
+						<li class="flex shrink-0 snap-start inline-[80%] sm:inline-105">
+							<button
+								type="button"
+								command="show-modal"
+								commandfor="work-lightbox"
+								data-lightbox-open
+								data-lightbox-index={i}
+								aria-label={`View larger: ${image.caption || `${work.title} screenshot ${i + 1}`}`}
+								class="border-border bg-secondary group block overflow-hidden rounded-xl border inline-full focus-visible:outline-none"
+							>
+								<ResponsiveImage
+									src={image.src}
+									darkSrc={image.srcDark}
+									alt=""
+									width={640}
+									height={400}
+									layout="none"
+									class="object-cover transition-transform duration-300 inline-full group-hover:scale-[1.02]"
+								/>
+							</button>
+						</li>
+					))}
+				</ul>
+				<div data-gallery-controls class="relative mbs-4 flex items-center justify-end gap-2">
+					{/* Centered dot markers (absolute so they stay centered regardless of the arrows). The
+					    ps/pe reserve the arrow zone on both sides so the row can't grow under the arrows; the
+					    inner row caps its width and scrolls when there are too many dots to fit. */}
+					<div class="pointer-events-none absolute inset-s-0 inset-e-0 flex justify-center ps-24 pe-24">
+						<div
+							data-gallery-dots
+							aria-label="Choose image"
+							class="pointer-events-auto flex scrollbar-none justify-center-safe gap-1.5 overflow-x-auto max-inline-full min-inline-0 [&::-webkit-scrollbar]:hidden"
+						>
+							{gallery.map((_, i) => (
+								<button
+									type="button"
+									data-gallery-dot={i}
+									aria-label={`Go to image ${i + 1}`}
+									aria-current={i === 0 ? "true" : undefined}
+									class="bg-muted-foreground/40 hover:bg-muted-foreground/70 aria-current:bg-primary shrink-0 rounded-full transition-[inline-size,background-color] block-2 inline-2 aria-current:inline-5"
+								/>
+							))}
+						</div>
+					</div>
+					<button
+						type="button"
+						data-gallery-prev
+						disabled
+						aria-label="Previous images"
+						class="border-border hover:bg-secondary focus-visible:bg-secondary grid size-9 place-items-center-safe rounded-full border transition-colors disabled:pointer-events-none disabled:opacity-40"
+					>
+						<Icon icon={ArrowLeft01Icon} class="size-4" />
+					</button>
+					<button
+						type="button"
+						data-gallery-next
+						aria-label="Next images"
+						class="border-border hover:bg-secondary focus-visible:bg-secondary grid size-9 place-items-center-safe rounded-full border transition-colors disabled:pointer-events-none disabled:opacity-40"
+					>
+						<Icon icon={ArrowRight01Icon} class="size-4" />
+					</button>
+				</div>
+
+				<Lightbox id="work-lightbox" gallery={gallery} title={work.title} />
+			</section>
+		)
+	}
+
+	{/* Supplementary documents */}
+	{
+		work.files.length > 0 && (
+			<section>
+				<h4 class="text-muted-foreground text-sm font-semibold">Supplementary Materials</h4>
+				<ul class="border-border mbs-3 overflow-hidden rounded-xl border">
+					{work.files.map((file, index) => {
+						const disabled = !file.href;
+						const rowClass = [
+							"flex items-center-safe gap-3 px-4 py-3",
+							index > 0 ? "border-border border-t" : "",
+							disabled
+								? "cursor-default opacity-70"
+								: "group hover:bg-secondary focus-visible:bg-secondary transition-colors",
+						]
+							.filter(Boolean)
+							.join(" ");
+						const icon =
+							file.kind === "PDF" ? Book02Icon : file.kind === "MP4" ? Video01Icon : File01Icon;
+
+						const inner = (
+							<>
+								<span class="border-border bg-card grid size-9 shrink-0 place-items-center-safe rounded-lg border">
+									<Icon icon={icon} class="text-muted-foreground size-4" />
+								</span>
+								<span class="min-w-0 flex-1">
+									<span class="block truncate text-sm">{file.name}</span>
+									<span class="text-muted-foreground text-xs">
+										{file.kind}
+										{file.size ? ` · ${file.size}` : ""}
+										{disabled ? " · coming soon" : ""}
+									</span>
+								</span>
+								{!disabled && (
+									<Icon
+										icon={LinkSquare02Icon}
+										class="text-muted-foreground group-hover:text-foreground group-focus-visible:text-foreground size-4 shrink-0 transition-colors"
+									/>
+								)}
+							</>
+						);
+
+						return (
+							<li>
+								{disabled ? (
+									<div class={rowClass}>{inner}</div>
+								) : (
+									<a href={file.href} target="_blank" rel="noreferrer" class={rowClass}>
+										{inner}
+										<span class="sr-only"> (opens in new tab)</span>
+									</a>
+								)}
+							</li>
+						);
+					})}
+				</ul>
+			</section>
+		)
+	}
+</article>

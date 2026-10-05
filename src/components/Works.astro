@@ -1,0 +1,359 @@
+---
+import { ArrowUpRight03Icon, ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import Section from "./ui/Section.astro";
+import Icon from "./ui/Icon.astro";
+import ResponsiveImage from "./ui/ResponsiveImage.astro";
+import WorkDetail from "./WorkDetail.astro";
+import WorksDialog from "./WorksDialog";
+import { getCollection } from "astro:content";
+
+// Sort by id (w1…w6) to keep the curated display order. WorkDetail renders each entry's
+// Markdown body itself, so no image glob or body pre-rendering is needed here.
+const works = (await getCollection("works")).sort((a, b) => a.id.localeCompare(b.id));
+
+const PAGE_SIZE = 3;
+const pageCount = Math.ceil(works.length / PAGE_SIZE);
+---
+
+<Section id="works" title="Works">
+	<!-- Work item card -->
+	<ul class="border-border @container/works border-t" data-works-list>
+		{
+			works.map((entry, index) => {
+				const work = entry.data;
+				const pageIndex = Math.floor(index / PAGE_SIZE);
+				const cover = work.cover;
+				const coverDark = work.coverDark;
+
+				return (
+					<li class="border-border border-b" data-page={pageIndex} hidden={pageIndex !== 0}>
+						<button
+							type="button"
+							data-work-id={entry.id}
+							aria-haspopup="dialog"
+							class="group hover:bg-secondary/40 focus-visible:bg-secondary/40 grid grid-cols-[auto_1fr] items-center gap-4 rounded-xl px-3 py-6 text-start transition-transform inline-full active:scale-98 data-dialog-active:scale-98 @lg/works:grid-cols-[auto_auto_1fr_auto] @lg/works:gap-5 @2xl/works:gap-6 @2xl/works:px-4 @2xl/works:py-8"
+						>
+							<span class="text-muted-foreground col-start-1 row-start-1 text-sm tabular-nums">
+								{String(index + 1).padStart(2, "0")}
+							</span>
+							<span class="bg-secondary border-border squircle col-span-2 row-start-2 aspect-video shrink-0 overflow-hidden rounded-3xl border inline-full @lg/works:col-span-1 @lg/works:col-start-2 @lg/works:row-start-1 @lg/works:inline-auto @lg/works:max-block-15 @lg/works:rounded-2xl">
+								{cover && (
+									<ResponsiveImage
+										src={cover}
+										darkSrc={coverDark}
+										alt=""
+										layout="constrained"
+										class="object-cover block-full inline-full"
+									/>
+								)}
+							</span>
+							<span class="col-span-2 row-start-3 min-w-0 @lg/works:col-span-1 @lg/works:col-start-3 @lg/works:row-start-1">
+								<span class="block text-lg font-semibold tracking-tight text-balance @2xl/works:text-2xl">
+									{work.title}
+								</span>
+								<span class="text-muted-foreground mbs-1 block truncate text-sm text-pretty @2xl/works:text-base">
+									{work.tagline}
+								</span>
+							</span>
+							<span class="col-start-2 row-start-1 flex items-center gap-4 justify-self-end @lg/works:col-start-4 @lg/works:row-start-1">
+								<span class="text-muted-foreground text-sm">{work.date.short}</span>
+								<span class="border-border group-hover:bg-primary group-hover:text-primary-foreground group-focus-visible:bg-primary group-focus-visible:text-primary-foreground grid size-9 place-items-center-safe rounded-full border transition-all">
+									<Icon icon={ArrowUpRight03Icon} strokeWidth={2} class="size-4" />
+								</span>
+							</span>
+						</button>
+					</li>
+				);
+			})
+		}
+	</ul>
+
+	{
+		pageCount > 1 && (
+			<nav class="mbs-10 flex items-center justify-between" aria-label="Works pagination">
+				<button
+					type="button"
+					data-page-prev
+					disabled
+					class="border-border hover:bg-secondary focus-visible:bg-secondary inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition-colors disabled:pointer-events-none disabled:opacity-40"
+				>
+					<Icon icon={ArrowLeft01Icon} class="size-4" />
+					Prev
+				</button>
+
+				<div class="flex items-center gap-1.5">
+					{Array.from({ length: pageCount }).map((_, i) => (
+						<button
+							type="button"
+							data-page-dot={i}
+							aria-label={`Page ${i + 1}`}
+							aria-current={i === 0 ? "page" : undefined}
+							class="text-muted-foreground hover:bg-secondary hover:text-foreground focus-visible:bg-secondary focus-visible:text-foreground aria-[current=page]:bg-primary aria-[current=page]:text-primary-foreground size-8 rounded-full text-sm tabular-nums transition-colors"
+						>
+							{i + 1}
+						</button>
+					))}
+				</div>
+
+				<button
+					type="button"
+					data-page-next
+					class="border-border hover:bg-secondary focus-visible:bg-secondary inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition-colors disabled:pointer-events-none disabled:opacity-40"
+				>
+					Next
+					<Icon icon={ArrowRight01Icon} class="size-4" />
+				</button>
+			</nav>
+		)
+	}
+
+	{
+		/* Detail sheet: each card opens the matching work via document-delegated clicks (data-work-id). */
+	}
+	<WorksDialog client:load />
+
+	{
+		/* Each work's detail is authored here as Astro but kept inert in a <template> until the sheet
+	    injects it — only the opened work's markup ever goes live, images included. */
+	}
+	{
+		works.map((entry) => (
+			<template data-work-detail={entry.id}>
+				<WorkDetail entry={entry} />
+			</template>
+		))
+	}
+</Section>
+
+<script>
+	import { scrollToSection } from "@lib/scroll-to";
+
+	const list = document.querySelector("[data-works-list]");
+	const dots = [...document.querySelectorAll<HTMLButtonElement>("[data-page-dot]")];
+	const prev = document.querySelector<HTMLButtonElement>("[data-page-prev]");
+	const next = document.querySelector<HTMLButtonElement>("[data-page-next]");
+
+	if (list && dots.length > 1) {
+		const items = [...list.querySelectorAll<HTMLElement>("[data-page]")];
+		const pageCount = dots.length;
+		let page = 0;
+
+		const render = () => {
+			items.forEach((li) => {
+				li.hidden = Number(li.dataset.page) !== page;
+			});
+			dots.forEach((dot, i) => {
+				if (i === page) dot.setAttribute("aria-current", "page");
+				else dot.removeAttribute("aria-current");
+			});
+			if (prev) prev.disabled = page === 0;
+			if (next) next.disabled = page === pageCount - 1;
+		};
+
+		const goToPage = (target: number) => {
+			page = Math.max(0, Math.min(pageCount - 1, target));
+			render();
+			// Keep the list in view when the page changes.
+			scrollToSection("works");
+		};
+
+		dots.forEach((dot, i) => dot.addEventListener("click", () => goToPage(i)));
+		prev?.addEventListener("click", () => goToPage(page - 1));
+		next?.addEventListener("click", () => goToPage(page + 1));
+	}
+
+	// --- Gallery lightbox enhancements (document-level: WorkDetail's own scripts never run, since
+	// its markup is injected as an HTML string by WorksDialog). Progressive: the lightbox opens and
+	// closes natively via invoker commands and animates via CSS without this. ---
+
+	// Click-to-close: the dialog fills the viewport, so `closedby`'s outside-click never fires. Close
+	// when the click lands on the empty area beside an image ([data-lightbox-dismiss]) or, in
+	// pre-closedby browsers, on the dialog element itself. Escape still closes via `closedby`.
+	document.addEventListener("click", (event) => {
+		const target = event.target as HTMLElement | null;
+		if (!target) return;
+		const dismiss =
+			target.hasAttribute("data-lightbox-dismiss") ||
+			(target instanceof HTMLDialogElement && target.matches("[data-lightbox]"));
+		if (dismiss) target.closest<HTMLDialogElement>("[data-lightbox]")?.close();
+	});
+
+	// --- Lightbox carousel: open at the clicked slide, page with prev/next arrows and ←/→ keys. The
+	// track is a horizontal scroll-snap list of full-size slides; controls just scroll it (native
+	// swipe/snap do the rest). Delegated so it works on the injected WorkDetail markup. ---
+
+	// Highlight the dot at `index` (aria-current="true") within a dots container, clearing the rest.
+	const setActiveDot = (dots: HTMLElement | null | undefined, index: number) => {
+		if (!dots) return;
+		const kids = [...dots.children];
+		const active = Math.max(0, Math.min(kids.length - 1, index));
+		kids.forEach((dot, i) => {
+			if (i === active) dot.setAttribute("aria-current", "true");
+			else dot.removeAttribute("aria-current");
+		});
+	};
+
+	// Disable prev on the first slide, next on the last; highlight the active dot.
+	const syncLightbox = (track: HTMLElement) => {
+		const dialog = track.closest<HTMLElement>("[data-lightbox]");
+		if (!dialog) return;
+		const prev = dialog.querySelector<HTMLButtonElement>("[data-lightbox-prev]");
+		const next = dialog.querySelector<HTMLButtonElement>("[data-lightbox-next]");
+		const max = track.scrollWidth - track.clientWidth;
+		const pos = Math.abs(track.scrollLeft);
+		if (prev) prev.disabled = pos <= 1;
+		if (next) next.disabled = pos >= max - 1;
+		// Full-width slides → index maps cleanly to scroll position.
+		setActiveDot(dialog.querySelector<HTMLElement>("[data-lightbox-dots]"), Math.round(pos / track.clientWidth));
+	};
+
+	// Scroll one slide toward the inline end (forward) or start; RTL-aware.
+	const pageLightbox = (track: HTMLElement, forward: boolean) => {
+		const sign = getComputedStyle(track).direction === "rtl" ? -1 : 1;
+		track.scrollBy({ left: sign * track.clientWidth * (forward ? 1 : -1), behavior: "smooth" });
+	};
+
+	// Thumbnails open the shared dialog declaratively (command="show-modal"), which always starts at
+	// slide 0. Jump to the clicked thumbnail's index right after it opens — rAF runs after the native
+	// open completes but before paint, so there's no flash of the first slide.
+	document.addEventListener("click", (event) => {
+		const trigger = (event.target as HTMLElement | null)?.closest<HTMLElement>("[data-lightbox-open]");
+		if (!trigger) return;
+		const dialog = document.getElementById(trigger.getAttribute("commandfor") ?? "");
+		if (!(dialog instanceof HTMLDialogElement)) return;
+		const index = Number(trigger.dataset.lightboxIndex) || 0;
+		requestAnimationFrame(() => {
+			const track = dialog.querySelector<HTMLElement>("[data-lightbox-track]");
+			const slide = track?.children[index] as HTMLElement | undefined;
+			slide?.scrollIntoView({ inline: "start", block: "nearest", behavior: "instant" });
+			if (track) syncLightbox(track);
+		});
+	});
+
+	// Prev/next arrows.
+	document.addEventListener("click", (event) => {
+		const button = (event.target as HTMLElement | null)?.closest<HTMLButtonElement>(
+			"[data-lightbox-prev], [data-lightbox-next]",
+		);
+		if (!button) return;
+		const track = button
+			.closest<HTMLElement>("[data-lightbox]")
+			?.querySelector<HTMLElement>("[data-lightbox-track]");
+		if (track) pageLightbox(track, button.hasAttribute("data-lightbox-next"));
+	});
+
+	// Dot markers → jump to that slide.
+	document.addEventListener("click", (event) => {
+		const dot = (event.target as HTMLElement | null)?.closest<HTMLElement>("[data-lightbox-dot]");
+		if (!dot) return;
+		const track = dot
+			.closest<HTMLElement>("[data-lightbox]")
+			?.querySelector<HTMLElement>("[data-lightbox-track]");
+		const slide = track?.children[Number(dot.dataset.lightboxDot) || 0] as HTMLElement | undefined;
+		slide?.scrollIntoView({ inline: "start", block: "nearest", behavior: "smooth" });
+	});
+
+	// Arrow-key navigation while the lightbox is open.
+	document.addEventListener("keydown", (event) => {
+		if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+		const track = document
+			.querySelector<HTMLDialogElement>("dialog[data-lightbox][open]")
+			?.querySelector<HTMLElement>("[data-lightbox-track]");
+		if (track) pageLightbox(track, event.key === "ArrowRight");
+	});
+
+	// Keep the arrows in sync as the carousel scrolls (capture phase — scroll doesn't bubble) + on resize.
+	document.addEventListener(
+		"scroll",
+		(event) => {
+			const track = event.target;
+			if (track instanceof HTMLElement && track.matches("[data-lightbox-track]")) syncLightbox(track);
+		},
+		true,
+	);
+	window.addEventListener("resize", () => {
+		document.querySelectorAll<HTMLElement>("[data-lightbox-track]").forEach(syncLightbox);
+	});
+
+	// --- Gallery prev/next navigation. The scroll-snap track is driven by icon buttons (no visible
+	// scrollbar). Delegated so it works on the injected WorkDetail markup; state is re-synced on
+	// scroll, on resize, and when a gallery is first injected (MutationObserver). ---
+
+	// One "page" of scroll ≈ the first item's width + the flex gap.
+	const galleryStep = (track: HTMLElement) => {
+		const item = track.querySelector<HTMLElement>(":scope > *");
+		const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+		return item ? item.getBoundingClientRect().width + gap : track.clientWidth * 0.8;
+	};
+
+	// Toggle the prev/next disabled state and hide the controls when there's nothing to scroll.
+	const syncGallery = (track: HTMLElement) => {
+		const gallery = track.closest<HTMLElement>("[data-gallery]");
+		if (!gallery) return;
+		const prev = gallery.querySelector<HTMLButtonElement>("[data-gallery-prev]");
+		const next = gallery.querySelector<HTMLButtonElement>("[data-gallery-next]");
+		const controls = gallery.querySelector<HTMLElement>("[data-gallery-controls]");
+		const max = track.scrollWidth - track.clientWidth;
+		// scrollLeft is negative in RTL on some engines — compare by magnitude.
+		const pos = Math.abs(track.scrollLeft);
+		if (controls) controls.hidden = max <= 1;
+		if (prev) prev.disabled = pos <= 1;
+		if (next) next.disabled = pos >= max - 1;
+		// Thumbnails show several at once, so the last item can't reach the start — clamp the ends.
+		const active = pos <= 1 ? 0 : pos >= max - 1 ? Number.MAX_SAFE_INTEGER : Math.round(pos / galleryStep(track));
+		setActiveDot(gallery.querySelector<HTMLElement>("[data-gallery-dots]"), active);
+	};
+
+	document.addEventListener("click", (event) => {
+		const button = (event.target as HTMLElement | null)?.closest<HTMLButtonElement>(
+			"[data-gallery-prev], [data-gallery-next]",
+		);
+		if (!button) return;
+		const track = button
+			.closest<HTMLElement>("[data-gallery]")
+			?.querySelector<HTMLElement>("[data-gallery-track]");
+		if (!track) return;
+		const forward = button.hasAttribute("data-gallery-next");
+		// Respect writing direction so "next" always moves toward the inline end.
+		const sign = getComputedStyle(track).direction === "rtl" ? -1 : 1;
+		track.scrollBy({ left: sign * galleryStep(track) * (forward ? 1 : -1), behavior: "smooth" });
+	});
+
+	// Dot markers → scroll that image to the start.
+	document.addEventListener("click", (event) => {
+		const dot = (event.target as HTMLElement | null)?.closest<HTMLElement>("[data-gallery-dot]");
+		if (!dot) return;
+		const track = dot
+			.closest<HTMLElement>("[data-gallery]")
+			?.querySelector<HTMLElement>("[data-gallery-track]");
+		const slide = track?.children[Number(dot.dataset.galleryDot) || 0] as HTMLElement | undefined;
+		slide?.scrollIntoView({ inline: "start", block: "nearest", behavior: "smooth" });
+	});
+
+	// scroll doesn't bubble, but the capture phase reaches it.
+	document.addEventListener(
+		"scroll",
+		(event) => {
+			const track = event.target;
+			if (track instanceof HTMLElement && track.matches("[data-gallery-track]")) syncGallery(track);
+		},
+		true,
+	);
+
+	window.addEventListener("resize", () => {
+		document.querySelectorAll<HTMLElement>("[data-gallery-track]").forEach(syncGallery);
+	});
+
+	// WorkDetail is injected after the fact — initialise each gallery as its track enters the DOM.
+	new MutationObserver((mutations) => {
+		for (const mutation of mutations) {
+			for (const node of mutation.addedNodes) {
+				if (!(node instanceof HTMLElement)) continue;
+				const tracks = node.matches("[data-gallery-track]")
+					? [node]
+					: [...node.querySelectorAll<HTMLElement>("[data-gallery-track]")];
+				tracks.forEach(syncGallery);
+			}
+		}
+	}).observe(document.body, { childList: true, subtree: true });
+</script>

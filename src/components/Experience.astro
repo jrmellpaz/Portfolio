@@ -1,0 +1,30 @@
+---
+import Section from "./ui/Section.astro";
+import { getCollection, render } from "astro:content";
+
+const experience = (await getCollection("experience")).sort((a, b) => a.data.order - b.data.order);
+// render() is async; pre-render bodies here since we can't await inside the .map() JSX.
+const entries = await Promise.all(
+	experience.map(async (entry) => ({ data: entry.data, Content: (await render(entry)).Content })),
+);
+---
+
+<Section id="experience" title="Experience & Education">
+	<ul class="divide-border divide-y">
+		{
+			entries.map(({ data, Content }) => (
+				<li class="grid gap-2 py-6 md:grid-cols-[1fr_2fr] md:gap-8 md:py-8">
+					<div class="text-muted-foreground text-sm">{data.date}</div>
+					<div>
+						<h3 class="text-lg font-semibold tracking-tight text-pretty md:text-xl">{data.role}</h3>
+						<p class="text-muted-foreground mbs-0.5 text-sm">{data.org}</p>
+						{/* Markdown body: Tailwind preflight strips list styling, so restore it per-<li>. */}
+						<div class="[&_li]:text-foreground/80 [&_li]:mbs-3 [&_li]:ms-5 [&_li]:list-disc [&_li]:text-sm [&_li]:leading-relaxed [&_li]:text-pretty md:[&_li]:text-base">
+							<Content />
+						</div>
+					</div>
+				</li>
+			))
+		}
+	</ul>
+</Section>

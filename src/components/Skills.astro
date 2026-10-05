@@ -1,0 +1,68 @@
+---
+import Badge from "./ui/Badge.astro";
+import Section from "./ui/Section.astro";
+import { skills } from "@lib/data/skills";
+
+// import.meta.glob can't use the @assets alias — the pattern must be relative.
+// `eager` inlines the imports so `mod.default` is the ImageMetadata directly.
+const logos = import.meta.glob<{ default: ImageMetadata }>("../assets/skills/*.svg", {
+	eager: true,
+});
+
+const logoBySlug = Object.fromEntries(
+	Object.entries(logos).map(([path, mod]) => [
+		path.split("/").pop()!.replace(".svg", ""),
+		mod.default,
+	]),
+);
+---
+
+<Section id="skills" title="Skills">
+	<div class="border-border bg-border grid gap-px overflow-hidden border sm:grid-cols-2">
+		{
+			skills.map((group) => (
+				<div class="bg-background p-6 md:p-8">
+					<h3 class="text-muted-foreground text-sm">{group.name}</h3>
+					<ul class="mbs-4 flex flex-wrap gap-2">
+						{group.items.map((item) => {
+							const logo = logoBySlug[item.slug];
+							return (
+								<li>
+									<Badge>
+										{logo && (
+											<img
+												src={logo.src}
+												alt=""
+												class:list={[
+													"select-none block-4 inline-4",
+													{ "logo-invert-dark": item.invertOnDark },
+												]}
+												loading="lazy"
+												decoding="async"
+											/>
+										)}
+										<span>{item.label}</span>
+									</Badge>
+								</li>
+							);
+						})}
+					</ul>
+				</div>
+			))
+		}
+	</div>
+</Section>
+
+<style>
+	/* Monochrome (black) logos like Next.js are invisible on dark backgrounds —
+	   flip them to white. Only opt-in logos get the class; colored logos are left alone. */
+	:root[data-theme="dark"] .logo-invert-dark {
+		filter: invert(1);
+	}
+
+	@media (prefers-color-scheme: dark) {
+		:root[data-theme="system"] .logo-invert-dark {
+			filter: invert(1);
+		}
+	}
+</style>

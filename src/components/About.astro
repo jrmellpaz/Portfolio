@@ -1,0 +1,42 @@
+---
+import { about } from "@lib/data/about";
+import Section from "./ui/Section.astro";
+import ButtonLink from "./ui/ButtonLink.astro";
+import { social } from "@lib/data/social";
+import Icon from "./ui/Icon.astro";
+import { Pdf01Icon } from "@hugeicons/core-free-icons";
+
+const resume = social.find((item) => item.name === "Résumé")?.link;
+---
+
+<Section id="about" title="About">
+	<div class="grid gap-16 md:grid-cols-[1.5fr_1fr] md:gap-20">
+		<div class="text-foreground/80 space-y-5 text-base leading-relaxed md:text-lg">
+			{about.intro.map((item) => <p class="text-pretty">{item}</p>)}
+			{
+				resume && (
+					<ButtonLink
+						variant="outline"
+						class={"mbs-6"}
+						href={resume}
+						target="_blank"
+						rel="noreferrer"
+					>
+						<Icon icon={Pdf01Icon} strokeWidth={1} /> View résumé
+						<span class="sr-only"> (opens in new tab)</span>
+					</ButtonLink>
+				)
+			}
+		</div>
+		<dl class="divide-border space-y-0 divide-y self-start text-sm">
+			{
+				about.list.map((item) => (
+					<div class="flex items-center-safe justify-between gap-4 px-1.5 py-3">
+						<dt class="text-muted-foreground text-sm">{item.title}</dt>
+						<dd class="text-right text-sm">{item.description}</dd>
+					</div>
+				))
+			}
+		</dl>
+	</div>
+</Section>

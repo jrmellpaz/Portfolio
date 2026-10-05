@@ -1,0 +1,27 @@
+---
+import type { links } from "@lib/data/links";
+
+type Props = {
+	id: (typeof links)[number]["id"];
+	title: string;
+};
+
+const { id, title }: Props = Astro.props;
+---
+
+<section
+	class="border-border border-t pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]"
+	aria-labelledby={id}
+>
+	<div class="mx-auto px-6 py-16 max-inline-6xl md:px-10 md:py-24">
+		<div class="mbe-10 md:mbe-14">
+			<h2
+				id={id}
+				class="scroll-mbs-24 text-2xl font-bold tracking-tighter md:text-3xl [:root[data-theme=dark]_&]:tracking-tight dark:[:root[data-theme=system]_&]:tracking-tight"
+			>
+				{title}
+			</h2>
+		</div>
+		<slot />
+	</div>
+</section>

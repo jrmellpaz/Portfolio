@@ -1,0 +1,25 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { cn } from "@lib/utils";
+
+type Variant = "primary" | "outline";
+
+type Props = HTMLAttributes<"button"> & {
+	variant?: Variant;
+};
+
+const { variant = "primary", class: className, ...rest } = Astro.props;
+
+const base =
+	"group inline-flex items-center-safe font-medium gap-2 rounded-full px-5 py-2.5 text-sm";
+
+const variants: Record<Variant, string> = {
+	primary:
+		"bg-primary selection:bg-primary-foreground selection:text-primary text-primary-foreground transition-opacity focus-visible:opacity-85 hover:opacity-85",
+	outline: "border border-border transition-colors focus-visible:bg-secondary hover:bg-secondary",
+};
+---
+
+<button class={cn(base, variants[variant], className)} {...rest}>
+	<slot />
+</button>

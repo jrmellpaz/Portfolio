@@ -1,0 +1,171 @@
+---
+import Icon from "./ui/Icon.astro";
+import { Sun03Icon, ComputerIcon, Moon02Icon } from "@hugeicons/core-free-icons";
+
+const options = [
+	{ mode: "light", label: "Light", icon: Sun03Icon },
+	{ mode: "system", label: "System", icon: ComputerIcon },
+	{ mode: "dark", label: "Dark", icon: Moon02Icon },
+];
+
+const defaultTheme = "system" as const;
+---
+
+<div
+	class="theme-toggle border-border flex items-center gap-0.5 rounded-full border p-0.5"
+	role="radiogroup"
+	aria-label="Theme"
+>
+	{
+		options.map(({ mode, label, icon }) => (
+			<button
+				type="button"
+				role="radio"
+				data-theme-value={mode}
+				aria-checked={mode === defaultTheme ? "true" : "false"}
+				tabindex={mode === defaultTheme ? 0 : -1}
+				aria-label={label}
+				title={label}
+				class="theme-toggle__btn text-muted-foreground focus-visible:text-foreground hover:text-foreground grid size-7 place-items-center rounded-full transition-colors duration-150"
+			>
+				<Icon icon={icon} size={14} />
+			</button>
+		))
+	}
+</div>
+
+<script>
+	const STORAGE_KEY = "theme" as const;
+	const THEMES = ["light", "system", "dark"] as const;
+
+	type Theme = (typeof THEMES)[number];
+
+	const ACTIVE_CLASSES = [
+		"is-active",
+		"bg-primary",
+		"text-primary-foreground",
+		"hover:text-primary-foreground",
+		"focus-visible:text-primary-foreground",
+	] as const;
+
+	const media = window.matchMedia("(prefers-color-scheme: dark)");
+
+	function isTheme(value: string | null): value is Theme {
+		return (THEMES as readonly string[]).includes(value ?? "");
+	}
+
+	function getTheme(): Theme {
+		const stored = localStorage.getItem(STORAGE_KEY);
+		return isTheme(stored) ? stored : "system";
+	}
+
+	// This script is hoisted and runs once for the page, but multiple ThemeToggle instances can be
+	// rendered (desktop nav + mobile sheet), and the mobile one is mounted lazily inside the sheet's
+	// portal. So sync *every* toggle button currently in the DOM rather than a set captured at load.
+	function syncButtons(theme: Theme) {
+		document.querySelectorAll<HTMLButtonElement>(".theme-toggle__btn").forEach((btn) => {
+			const isActive = btn.dataset.themeValue === theme;
+
+			if (isActive) {
+				btn.classList.add(...ACTIVE_CLASSES);
+			} else {
+				btn.classList.remove(...ACTIVE_CLASSES);
+			}
+
+			btn.setAttribute("aria-checked", String(isActive));
+			// Roving tabindex: only the checked radio is in the tab order (ARIA radiogroup pattern).
+			btn.tabIndex = isActive ? 0 : -1;
+		});
+	}
+
+	function applyTheme(theme: Theme) {
+		document.documentElement.setAttribute("data-theme", theme);
+		syncButtons(theme);
+	}
+
+	function withTransition(fn: () => void) {
+		// Cross-fade with the View Transitions API when supported.
+		if (document.startViewTransition) {
+			document.startViewTransition(fn);
+		} else {
+			fn();
+		}
+	}
+
+	function setTheme(theme: Theme) {
+		localStorage.setItem(STORAGE_KEY, theme);
+		withTransition(() => applyTheme(theme));
+	}
+
+	// Event delegation off the document, so toggles that mount after load (the mobile sheet) work too.
+	document.addEventListener("click", (event) => {
+		const btn = (event.target as Element | null)?.closest<HTMLButtonElement>(".theme-toggle__btn");
+		if (!btn) return;
+
+		const value = btn.dataset.themeValue ?? null;
+		setTheme(isTheme(value) ? value : "system");
+	});
+
+	// Arrow-key navigation for the radiogroup (selection follows focus). Sibling lookup is scoped to
+	// the button's own .theme-toggle group so the desktop nav and mobile-sheet toggles stay separate.
+	document.addEventListener("keydown", (event) => {
+		const btn = (event.target as Element | null)?.closest<HTMLButtonElement>(".theme-toggle__btn");
+		if (!btn) return;
+
+		const group = btn.closest(".theme-toggle");
+		if (!group) return;
+
+		const buttons = [...group.querySelectorAll<HTMLButtonElement>(".theme-toggle__btn")];
+		const current = buttons.indexOf(btn);
+		if (current === -1) return;
+
+		let next: number;
+		switch (event.key) {
+			case "ArrowRight":
+			case "ArrowDown":
+				next = (current + 1) % buttons.length;
+				break;
+			case "ArrowLeft":
+			case "ArrowUp":
+				next = (current - 1 + buttons.length) % buttons.length;
+				break;
+			case "Home":
+				next = 0;
+				break;
+			case "End":
+				next = buttons.length - 1;
+				break;
+			default:
+				return;
+		}
+
+		event.preventDefault();
+		const target = buttons[next];
+		const value = target.dataset.themeValue ?? null;
+		setTheme(isTheme(value) ? value : "system");
+		target.focus();
+	});
+
+	// When a toggle mounts later (e.g. the sheet opening re-renders its portal), it renders with the
+	// server default — re-sync it to the active theme so its highlight is correct on first paint.
+	const observer = new MutationObserver((mutations) => {
+		for (const mutation of mutations) {
+			for (const node of mutation.addedNodes) {
+				if (
+					node instanceof Element &&
+					(node.matches(".theme-toggle") || node.querySelector(".theme-toggle"))
+				) {
+					syncButtons(getTheme());
+					return;
+				}
+			}
+		}
+	});
+	observer.observe(document.body, { childList: true, subtree: true });
+
+	applyTheme(getTheme());
+
+	media.addEventListener("change", () => {
+		if (getTheme() === "system") withTransition(() => applyTheme("system"));
+	});
+</script>

@@ -1,0 +1,127 @@
+---
+import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import Icon from "./Icon.astro";
+import ResponsiveImage from "./ResponsiveImage.astro";
+import { CloseButton } from "./CloseButton";
+
+// The gallery lightbox: one full-viewport modal <dialog> holding every image as a horizontal
+// scroll-snap carousel. Opening (via the thumbnails' `command="show-modal"`) and closing
+// (`command="close"`) stay declarative — WorkDetail is injected into the Silk sheet as an HTML string
+// (WorksDialog.tsx), so no component <script> runs here. The document-level script in Works.astro
+// scrolls to the clicked slide and drives prev/next; native swipe + snap handle the rest.
+
+interface Props {
+	// Ties the thumbnails' commandfor + the prev/next logic to this dialog.
+	id: string;
+	gallery: Array<{ src: ImageMetadata; srcDark?: ImageMetadata; caption: string }>;
+	// Work title — used for the dialog's accessible name.
+	title: string;
+}
+
+const { id, gallery, title } = Astro.props;
+const count = gallery.length;
+
+// `command`/`commandfor` aren't in React's button prop types yet — pass them through CloseButton's
+// rest-props spread as plain attributes (rendered statically by Astro, handled natively by the browser).
+const closeAttrs = { command: "close", commandfor: id } as Record<string, string>;
+
+// Shared styling for the solid, opaque overlay controls (readable on the dark backdrop). Note: no
+// `disabled:pointer-events-none` — the arrows overlay the click-to-dismiss slides, and disabling
+// pointer events would let a click on a disabled arrow fall through and close the lightbox. A disabled
+// <button> already swallows the click (no event fired), so keeping pointer events blocks the dismiss.
+const controlClass =
+	"grid size-9 place-items-center-safe rounded-full bg-white text-black transition-colors hover:bg-white/85 hover:text-black focus-visible:bg-white/85 focus-visible:text-black focus-visible:outline-white disabled:opacity-40";
+---
+
+<dialog
+	id={id}
+	closedby="any"
+	data-lightbox
+	aria-label={`${title} gallery`}
+	class="fixed inset-0 m-0 flex-col bg-transparent p-[env(safe-area-inset-top,0px)_env(safe-area-inset-right,0px)_env(safe-area-inset-bottom,0px)_env(safe-area-inset-left,0px)] opacity-0 transition-[opacity,display,overlay] transition-discrete duration-200 block-full inline-full max-block-none max-inline-none backdrop:bg-[rgb(0_0_0/0.85)] backdrop:opacity-0 backdrop:transition-[opacity,display,overlay] backdrop:transition-discrete backdrop:duration-300 open:flex open:opacity-100 open:backdrop:opacity-100 starting:open:opacity-0 starting:open:backdrop:opacity-0"
+>
+	{/* Fixed to the viewport corner, above the carousel. */}
+	<CloseButton {...closeAttrs} className={`absolute inset-e-4 inset-bs-4 z-20 ${controlClass}`} />
+
+	{
+		count > 1 && (
+			<>
+				<button
+					type="button"
+					data-lightbox-prev
+					aria-label="Previous image"
+					class={`absolute inset-s-4 inset-bs-1/2 z-20 -translate-y-1/2 shadow-[0_0_12px_rgb(0_0_0/0.45)] ${controlClass}`}
+				>
+					<Icon icon={ArrowLeft01Icon} class="size-4" />
+				</button>
+				<button
+					type="button"
+					data-lightbox-next
+					aria-label="Next image"
+					class={`absolute inset-e-4 inset-bs-1/2 z-20 -translate-y-1/2 shadow-[0_0_12px_rgb(0_0_0/0.45)] ${controlClass}`}
+				>
+					<Icon icon={ArrowRight01Icon} class="size-4" />
+				</button>
+			</>
+		)
+	}
+
+	<ul
+		data-lightbox-track
+		role="group"
+		aria-label="Gallery images"
+		class="flex grow snap-x snap-mandatory scrollbar-none overflow-x-auto inline-full min-block-0 [&::-webkit-scrollbar]:hidden"
+	>
+		{
+			gallery.map((image, i) => {
+				const alt = image.caption || `${title} screenshot ${i + 1}`;
+				const hasCaption = image.caption.trim().length > 0;
+				return (
+					<li
+						data-lightbox-dismiss
+						aria-label={`Image ${i + 1} of ${count}`}
+						class="flex shrink-0 snap-center items-center-safe justify-center p-4 inline-full"
+					>
+						<figure class="m-0 flex flex-col items-center-safe gap-3 max-block-full max-inline-full">
+							<ResponsiveImage
+								src={image.src}
+								darkSrc={image.srcDark}
+								alt={alt}
+								layout="constrained"
+								sizes="(max-width: 48rem) 90vw, 900px"
+								class="block rounded-2xl object-contain inline-auto max-block-[80svh] max-inline-[calc(100vw-2rem)]"
+							/>
+							{hasCaption && (
+								// inline-size:0 + min-inline-size:100% keeps the caption from widening the figure, so
+								// it tracks the image's rendered width and wraps within it.
+								<figcaption class="text-center text-sm text-pretty text-white/85 inline-0 min-inline-full">
+									{image.caption}
+								</figcaption>
+							)}
+						</figure>
+					</li>
+				);
+			})
+		}
+	</ul>
+
+	{
+		count > 1 && (
+			<div
+				data-lightbox-dots
+				aria-label="Choose image"
+				class="flex shrink-0 scrollbar-none justify-center-safe gap-2 overflow-x-auto px-4 pbe-4 [&::-webkit-scrollbar]:hidden"
+			>
+				{gallery.map((_, i) => (
+					<button
+						type="button"
+						data-lightbox-dot={i}
+						aria-label={`Go to image ${i + 1}`}
+						aria-current={i === 0 ? "true" : undefined}
+						class="shrink-0 rounded-full bg-white/40 transition-[inline-size,background-color] block-2 inline-2 hover:bg-white/70 aria-current:bg-white aria-current:inline-5"
+					/>
+				))}
+			</div>
+		)
+	}
+</dialog>

@@ -1,0 +1,16 @@
+---
+import { getCollection } from "astro:content";
+import Home from "@components/Home.astro";
+
+export async function getStaticPaths() {
+	const works = await getCollection("works");
+	return works.map((entry) => ({
+		params: { work: entry.id },
+		props: { title: `${entry.data.title} | Jermel B. Lapaz`, description: entry.data.tagline },
+	}));
+}
+
+const { title, description } = Astro.props;
+---
+
+<Home title={title} description={description} />

@@ -1,0 +1,17 @@
+---
+import ButtonLink from "@components/ui/ButtonLink.astro";
+import Layout from "@layouts/Layout.astro";
+---
+
+<Layout title="Something went wrong — Jermel B. Lapaz">
+	<section
+		class="mx-auto flex flex-col items-start gap-6 px-6 pbs-20 pbe-32 max-inline-6xl md:px-10 md:pbs-32"
+	>
+		<p class="text-muted-foreground text-sm tabular-nums">500</p>
+		<h1 class="text-4xl font-semibold tracking-tighter md:text-6xl">Something went wrong</h1>
+		<p class="text-foreground/80 text-base leading-relaxed max-inline-md md:text-lg">
+			An unexpected error occurred on our end. Please try again.
+		</p>
+		<ButtonLink href="/">Back to home</ButtonLink>
+	</section>
+</Layout>

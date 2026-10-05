@@ -1,0 +1,45 @@
+---
+import { Font } from "astro:assets";
+import "@styles/globals.css";
+import Navbar from "@components/Navbar.astro";
+
+type Props = {
+	title?: string;
+	description?: string;
+};
+
+const { title = "Jermel B. Lapaz", description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+		{description && <meta name="description" content={description} />}
+		<Font cssVariable="--font-inter" preload />
+		<Font cssVariable="--font-jetbrains-mono" preload />
+		<script is:inline>
+			(function () {
+				const theme = localStorage.getItem("theme") || "system";
+
+				document.documentElement.setAttribute("data-theme", theme);
+			})();
+		</script>
+	</head>
+	<body>
+		<a
+			href="#main-content"
+			class="focus:border-border focus:bg-background sr-only focus:not-sr-only focus:fixed focus:inset-s-2 focus:inset-bs-2 focus:z-50 focus:rounded-full focus:border focus:px-2 focus:py-0.5"
+		>
+			Skip to content
+		</a>
+		<Navbar />
+		<main id="main-content" tabindex="-1">
+			<slot />
+		</main>
+	</body>
+</html>
