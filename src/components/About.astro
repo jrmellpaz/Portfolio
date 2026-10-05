@@ -33,7 +33,7 @@ const resume = social.find((item) => item.name === "Résumé")?.link;
 				about.list.map((item) => (
 					<div class="flex items-center-safe justify-between gap-4 px-1.5 py-3">
 						<dt class="text-muted-foreground text-sm">{item.title}</dt>
-						<dd class="text-right text-sm">{item.description}</dd>
+						<dd class="text-right text-sm text-pretty">{item.description}</dd>
 					</div>
 				))
 			}
