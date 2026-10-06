@@ -1,0 +1,37 @@
+{
+	"short_name": "Jermel Lapaz",
+	"name": "Jermel Lapaz",
+	"start_url": "/",
+	"scope": "/",
+	"categories": [
+		"portfolio",
+		"showcase",
+		"computer science",
+		"information technology",
+		"artificial intelligence",
+		"machine learning",
+		"CS",
+		"IT",
+		"AI",
+		"ML"
+	],
+	"description": "I am a Computer Science graduate from the University of the Philippines Cebu who loves building full‑stack web applications. I focus on creating clean, practical software, such as AI‑powered business tools that solve real‑world problems.",
+	"icons": [
+		{
+			"src": "/favicon.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/favicon.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		}
+	],
+	"display": "standalone",
+	"theme_color": "#f3f2ed",
+	"background_color": "#f3f2ed",
+	"display_override": ["window-controls-overlay"]
+}
