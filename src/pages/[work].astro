@@ -6,7 +6,10 @@ export async function getStaticPaths() {
 	const works = await getCollection("works");
 	return works.map((entry) => ({
 		params: { work: entry.id },
-		props: { title: `${entry.data.title} | Jermel B. Lapaz`, description: entry.data.tagline },
+		props: {
+			title: `${entry.data.shortTitle ?? entry.data.title} | Jermel B. Lapaz`,
+			description: entry.data.tagline,
+		},
 	}));
 }
 

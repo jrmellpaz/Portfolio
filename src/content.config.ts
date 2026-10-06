@@ -7,14 +7,13 @@ const works = defineCollection({
 	schema: ({ image }) =>
 		z.object({
 			title: z.string(),
+			shortTitle: z.string().optional(),
 			tagline: z.string(),
 			date: z.object({ short: z.string(), long: z.string() }),
 			cover: image().optional(),
 			coverDark: image().optional(),
 			stack: z.array(z.string()),
-			links: z
-				.object({ live: z.string().optional(), source: z.string().optional() })
-				.default({}),
+			links: z.object({ live: z.string().optional(), source: z.string().optional() }).default({}),
 			highlights: z.array(z.string()).optional(),
 			gallery: z
 				.array(

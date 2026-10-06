@@ -6,6 +6,7 @@ import react from "@astrojs/react";
 
 // https://astro.build/config
 export default defineConfig({
+	site: "https://jermellapaz.me",
 	fonts: [
 		{
 			provider: fontProviders.fontsource(),
@@ -20,7 +21,7 @@ export default defineConfig({
 			cssVariable: "--font-jetbrains-mono",
 			fallbacks: ["monospace"],
 			weights: ["400 700"],
-		}
+		},
 	],
 
 	vite: {

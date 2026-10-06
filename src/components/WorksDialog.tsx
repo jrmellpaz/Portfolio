@@ -22,6 +22,7 @@ const isRoot = (url: string) => new URL(url, location.origin).pathname === "/";
 export default function WorksDialog() {
 	const [presented, setPresented] = useState(false);
 	const [detailHtml, setDetailHtml] = useState("");
+	const [workTitle, setWorkTitle] = useState("");
 	// The card that opened the sheet — kept so we can release its held scale on close.
 	const triggerRef = useRef<HTMLElement | null>(null);
 
@@ -31,6 +32,7 @@ export default function WorksDialog() {
 			const template = getTemplate(id);
 			if (!template) return;
 			setDetailHtml(template.innerHTML);
+			setWorkTitle(template.dataset.title ?? "");
 			setPresented(true);
 			// Hold the press scale on the opening card until the sheet closes. Looked up by id (not
 			// event.target) so it also works for direct loads and back/forward.
@@ -132,6 +134,16 @@ export default function WorksDialog() {
 			style.overflow = previous;
 		};
 	}, [presented]);
+
+	// Prefix the page title with the open work's title; the cleanup puts the original back.
+	useEffect(() => {
+		if (!presented || !workTitle) return;
+		const previous = document.title;
+		document.title = `${workTitle} | ${previous}`;
+		return () => {
+			document.title = previous;
+		};
+	}, [presented, workTitle]);
 
 	return (
 		<LongSheet.Root presented={presented} onPresentedChange={handlePresentedChange}>

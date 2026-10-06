@@ -6,9 +6,21 @@ import Navbar from "@components/Navbar.astro";
 type Props = {
 	title?: string;
 	description?: string;
+	image?: `${string}.${"png" | "jpg" | "jpeg" | "svg"}`;
+	imageAlt?: string;
+	type?: "website" | "article";
 };
 
-const { title = "Jermel B. Lapaz", description } = Astro.props;
+const {
+	title = "Jermel B. Lapaz",
+	description = "I am a Computer Science graduate from the University of the Philippines Cebu who loves building full‑stack web applications. I focus on creating clean, practical software, such as AI‑powered business tools that solve real‑world problems.",
+	image = "/banner.png",
+	imageAlt = "Jermel Lapaz personal portfolio site logo",
+	type = "website",
+} = Astro.props;
+
+const CANONICAL = new URL(Astro.url.pathname, Astro.site);
+const OG_IMAGE = new URL(image, Astro.site);
 ---
 
 <!doctype html>
@@ -16,11 +28,55 @@ const { title = "Jermel B. Lapaz", description } = Astro.props;
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-		<link rel="icon" type="image/x-icon" href="/favicon.ico" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
-		{description && <meta name="description" content={description} />}
+		<meta name="description" content={description} />
+
+		<link rel="canonical" href={CANONICAL} />
+		<meta name="robots" content="index, follow" />
+		<meta name="author" content="Jermel Lapaz" />
+
+		<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f3f2ed" />
+		<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#16150f" />
+
+		<meta name="apple-mobile-web-app-title" content="Jermel Lapaz" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" type="image/png" sizes="96x96" href="/favicon.png" />
+		<link rel="icon" type="image/x-icon" href="/favicon.ico" />
+		<link rel="apple-touch-icon" sizes="180x180" href="/favicon.png" />
+
+		<meta property="og:type" content={type} />
+		<meta property="og:site_name" content="Jermel Lapaz" />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={CANONICAL} />
+		<meta property="og:image" content={OG_IMAGE} />
+		<meta property="og:image:width" content="1800" />
+		<meta property="og:image:height" content="945" />
+		<meta property="og:image:alt" content={imageAlt} />
+		<meta property="og:locale" content="en_US" />
+
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={OG_IMAGE} />
+		<meta name="twitter:image:alt" content={imageAlt} />
+
+		<script
+			type="application/ld+json"
+			set:html={JSON.stringify({
+				"@context": "https://schema.org",
+				"@type": "Person",
+				name: "Jermel Lapaz",
+				url: "https://jermellapaz.me",
+				jobTitle: "Full-Stack Developer",
+				sameAs: ["https://github.com/jrmellpaz", "https://www.linkedin.com/in/jermellapaz"],
+			})}
+		/>
+
 		<Font cssVariable="--font-inter" preload />
 		<Font cssVariable="--font-jetbrains-mono" preload />
 		<script is:inline>
