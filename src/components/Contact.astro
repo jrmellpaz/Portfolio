@@ -7,9 +7,6 @@ import { social } from "@lib/data/social";
 
 const email = social.find((item) => item.name === "Email")?.link;
 
-const hrefFor = (item: (typeof social)[number]) =>
-	item.name === "Email" ? `mailto:${item.link}` : item.link;
-
 // Everything except the mailto email opens in a new tab (external profiles + the résumé PDF).
 const opensInNewTab = (item: (typeof social)[number]) => item.name !== "Email";
 
@@ -41,7 +38,7 @@ const labelFor = (item: (typeof social)[number]) =>
 				social.map((item) => (
 					<li>
 						<a
-							href={hrefFor(item)}
+							href={item.url}
 							class="group focus-visible:squircle flex flex-col justify-between py-2 focus-visible:rounded-full focus-visible:outline-offset-4 sm:flex-row sm:items-center-safe sm:gap-4 sm:py-3.5"
 							{...(opensInNewTab(item) ? { target: "_blank", rel: "noopener noreferrer" } : {})}
 						>
