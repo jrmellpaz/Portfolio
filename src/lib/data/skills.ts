@@ -20,7 +20,7 @@ export const skills: Skill[] = [
 		items: [
 			{ label: "React", slug: "react" },
 			{ label: "Vue.js", slug: "vue" },
-			{ label: "TanStack Stack", slug: "start" },
+			{ label: "TanStack", slug: "start" },
 			{ label: "Next.js", slug: "nextjs", invertOnDark: true },
 			{ label: "Nuxt", slug: "nuxt", invertOnDark: true },
 			{ label: "Astro", slug: "astro" },

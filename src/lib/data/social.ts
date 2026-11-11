@@ -10,11 +10,11 @@ export const social = [
 	},
 	{
 		name: "GitHub",
-		link: "https://github.com/jrmellpaz",
+		link: "github.com/jrmellpaz",
 	},
 	{
 		name: "LinkedIn",
-		link: "https://www.linkedin.com/in/jermellapaz",
+		link: "linkedin.com/in/jermellapaz",
 	},
 	{
 		name: "Résumé",
