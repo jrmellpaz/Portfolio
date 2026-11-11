@@ -12,7 +12,7 @@ type About = {
 
 export const about = {
 	intro: [
-		"My journey into programming started back in my high school Computer classes. I quickly fell in love with the problem-solving nature of writing code. Even when debugging got deeply frustrating, nothing beat the satisfying feeling of finding a single mistyped line and watching the whole project finally come to life.",
+		"My journey into programming started back in my high school computer classes. I quickly fell in love with the problem-solving nature of writing code. Even when debugging got deeply frustrating, nothing beat the satisfying feeling of finding a single mistyped line and watching the whole project finally come to life.",
 		"I hold a Computer Science degree from the University of the Philippines Cebu and have a strong foundation in full-stack web development. My experience includes building an AI-powered inventory forecasting system and a coupon platform, as well as PhilHealth integrations for clinic software, first as an intern and later as a junior developer. I always focus on building software that gives practical value to businesses and everyday users.",
 	],
 	list: [
